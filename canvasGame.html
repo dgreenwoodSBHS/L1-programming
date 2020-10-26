@@ -1,0 +1,250 @@
+<!doctype html>
+
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+        var canvas, canvasContext;
+
+        window.onload = function() {
+            canvas = document.getElementById('gameCanvas');
+            canvasContext = canvas.getContext('2d');
+
+            for (var i = 0; i < 101; i++) {
+                makeBlocks();
+            }
+            deleteBlocks();
+
+            document.addEventListener('keydown', keyPressed);
+            document.addEventListener('keyup', keyReleased);
+
+            setInterval(mainloop, 1000 / 50);
+        } // end func
+
+        // player vars
+        var playerXpos = 490;
+        var playerYpos = 415;
+        const playerSIZE = 20;
+        var playerXspeed = 2;
+        var playerYspeed = 2;
+
+        // key vars
+        var leftKeyPressed = false;
+        var rightKeyPressed = false;
+        var upKeyPressed = false;
+        var downKeyPressed = false;
+
+        // key consts
+        const LEFT_KEY = 37;
+        const UP_KEY = 38;
+        const RIGHT_KEY = 39;
+        const DOWN_KEY = 40;
+
+        // block vars
+        var blockXpos = 0;
+        var blockYpos = 0;
+        var blockSIZE = 100;
+
+        var blocks = [];
+
+        //  player import
+        var player = new Image();
+        player.src = 'images/player1.png';
+
+        var settingUp = true;
+
+        var userName = '';
+        
+        while(userName == '' || userName == null){
+            userName = prompt('what is your name?');
+        }
+      
+        function mainloop() {
+            colorRect(0, 0, canvas.width, canvas.height, 'black'); // bg
+
+            if (settingUp) {
+                playerYpos = canvas.height / 10 + playerSIZE * 1.7;
+                settingUp = false;
+            }
+
+            drawImgs(player, playerXpos, playerYpos, playerSIZE, playerSIZE); // player
+            //colorRect(blockXpos, blockYpos, blockSIZE, blockSIZE); // block
+
+            playerMove();
+            drawBlocks();
+        } // end func
+
+        function keyPressed(evt) {
+            if (evt.keyCode == LEFT_KEY) { //left
+                leftKeyPressed = true;
+            }
+            if (evt.keyCode == RIGHT_KEY) { // right
+                rightKeyPressed = true;
+            }
+            if (evt.keyCode == UP_KEY) { // up
+                upKeyPressed = true;
+            }
+            if (evt.keyCode == DOWN_KEY) { // down
+                downKeyPressed = true;
+            }
+        } // end func
+
+        function keyReleased(evt) {
+            if (evt.keyCode == LEFT_KEY) { //left
+                leftKeyPressed = false;
+            }
+            if (evt.keyCode == RIGHT_KEY) { // right
+                rightKeyPressed = false;
+            }
+            if (evt.keyCode == UP_KEY) { // up
+                upKeyPressed = false;
+            }
+            if (evt.keyCode == DOWN_KEY) { // down
+                downKeyPressed = false;
+            }
+        } // end func
+
+
+        var blockCols = 0;
+        var blockCount = 0;
+
+        function makeBlocks() {
+            var blockWidth = canvas.width / 10;
+            var blockHeight = canvas.height / 20;
+            var blockXpos = blockCount % 10 * blockWidth;
+            var blockYpos = blockCols * blockHeight * 2;
+
+            if (blockCount % 10 == 0 && blockCount != 0) {
+                blockCols++;
+            }
+            blockCount++;
+
+            var block = {
+                blockXpos: blockXpos,
+                blockYpos: blockYpos,
+                blockWidth: blockWidth,
+                blockHeight: blockHeight
+            }
+
+            blocks.push(block);
+
+        } // end func
+
+        function drawBlocks() {
+            blocks.forEach(function(block, i, array) {
+                colorRect(block.blockXpos, block.blockYpos, block.blockWidth, block.blockHeight, 'blue');
+            });
+        }
+
+            var makeGaps =  [];
+            var rowsCount = 0;
+        function deleteBlocks() {
+            for (var i = 0; i < blocks.length; i++) {
+                      
+                if(i%5 == 0 && i != 0){
+                    var randCheck = Math.floor(Math.random() * 7) + 1;
+                    makeGaps.push(randCheck + (6 * rowsCount));
+                    console.log(makeGaps + ' : ' + randCheck + ' : ' + rowsCount)
+                rowsCount++;
+                } else if(i == 0) {
+                    makeGaps.push(3);   
+                }
+            }
+            for(var i = 0; i < makeGaps.length; i++){
+                delete blocks[makeGaps[i]];
+            }
+            
+        } // end func
+        
+        function playerMove() {
+            if (rightKeyPressed) { // rightKeyPressed true
+                collision();
+                if (hit) {
+                    playerXpos -= playerXspeed;
+                    hit = false;
+                    console.log(playerXspeed)
+                } else {
+                    playerXpos += playerXspeed;
+
+                }
+            }
+            if (leftKeyPressed) { // leftKeyPressed true
+                collision();
+                if (hit) {
+                    playerXpos += playerXspeed;
+                    hit = false;
+                    console.log(playerXspeed)
+                } else {
+                    playerXpos -= playerXspeed;
+
+                }
+            }
+            if (upKeyPressed) { // upKeyPressed true
+                collision();
+                if (hit) {
+                    playerYpos += playerYspeed;
+                    hit = false;
+                } else {
+                    playerYpos -= playerYspeed
+                }
+            }
+            if (downKeyPressed) { // downKeyPressed true
+                collision();
+                if (hit) {
+                    playerYpos -= playerYspeed;
+                    hit = false;
+                } else {
+                    playerYpos += playerYspeed;
+                }
+            }
+
+        } // end func
+        
+        var hit = false;
+
+        function collision() {
+            blocks.forEach(function(block, i, array) {
+                
+
+                if (downKeyPressed && playerXpos + playerSIZE >= block.blockXpos && playerXpos <= block.blockXpos + block.blockWidth && playerYpos + playerSIZE + playerYspeed>= block.blockYpos && playerYpos <= block.blockYpos + block.blockHeight) {
+                    hit = true;
+                    while(playerYpos + playerSIZE + playerYspeed >= block.blockYpos){
+                       playerYpos -= playerYspeed;
+                    } 
+                }
+
+                if (upKeyPressed && playerXpos + playerSIZE >= block.blockXpos && playerXpos <= block.blockXpos + block.blockWidth && playerYpos + playerSIZE >= block.blockYpos && playerYpos <= block.blockYpos + block.blockHeight) {
+                    hit = true;
+                    while(playerYpos - playerYspeed >= block.blockYpos + block.blockHeight){
+                       playerYpos += playerYspeed;
+                    } 
+                }
+
+                if (leftKeyPressed && playerXpos + playerSIZE >= block.blockXpos && playerXpos - playerXspeed <= block.blockXpos + block.blockWidth && playerYpos + playerSIZE >= block.blockYpos && playerYpos <= block.blockYpos + block.blockHeight) {
+                    hit = true;
+                    if(playerXpos - playerXspeed > block.blockXpos + block.blockWidth){
+                       playerXpos += playerXspeed;
+                    } 
+                }
+                
+                if (rightKeyPressed && playerXpos + playerSIZE + playerXspeed >= block.blockXpos && playerXpos <= block.blockXpos + block.blockWidth && playerYpos + playerSIZE >= block.blockYpos && playerYpos <= block.blockYpos + block.blockHeight) {
+                    hit = true;
+                    if(playerXpos + playerSIZE + playerXspeed >= block.blockXpos){
+                       playerXpos -= playerXspeed;
+                    } 
+                }
+                
+            });
+        }
+        // end func
+
+        function colorRect(x, y, w, h, c) {
+            canvasContext.fillStyle = c;
+            canvasContext.fillRect(x, y, w, h);
+        } // end func
+
+        function drawImgs(src, x, y, w, h) {
+            canvasContext.drawImage(src, x, y, w, h);
+        } // end func
+
+    </script>
+</body>
